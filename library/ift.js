@@ -171,9 +171,12 @@
   // Manage services and consumers that communicate over a given transport.
   var Courier = function(transport) {
     this.transport = transport;
-    this.startListening = function() {
-        if (this.transport instanceof Child) this.transport.listen();
-    };
+    if (this.transport instanceof Child) {
+        this.startListening = function() {
+            this.transport.listen();
+        };
+    }
+
   };
 
   mixin(Courier.prototype, Events, {

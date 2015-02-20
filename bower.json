@@ -26,7 +26,7 @@
     "tests"
   ],
   "dependencies": {
-
+    "localstorage-events": "https://github.com/chatid/localstorage-events.git"
   },
   "devDependencies": {
     "domready": "~1.0.5"

@@ -7,9 +7,11 @@
     <script type='text/javascript' src='../library/ift.js'></script>
     <script type='text/javascript' src='../library/services/storage.js'></script>
     <script type='text/javascript'>
-    ift.connect({
+    var courier = ift.connect({
       trustedOrigins: ['http://127.0.0.1:8000']
-    }).service('storage');
+    });
+    courier.service('storage');
+    courier.startListening();
     </script>
 
   </head>

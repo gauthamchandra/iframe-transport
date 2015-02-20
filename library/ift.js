@@ -171,6 +171,9 @@
   // Manage services and consumers that communicate over a given transport.
   var Courier = function(transport) {
     this.transport = transport;
+    this.startListening = function() {
+        if (this.transport instanceof Child) this.transport.listen();
+    };
   };
 
   mixin(Courier.prototype, Events, {
@@ -233,14 +236,20 @@
   // Transport
   // ---------
 
-  // Base class for wrapping `iframe#postMessage`.
-  var Transport = function(targetOrigins) {
+  /**
+   * Base class for wrapping `iframe#postMessage`.
+   *
+   * @param {Array} targetOrigins - the URIs that messages are allowed to be sent to.
+   * @param [boolean] autoStartListening - whether to immediately start listening or setup the connection. At the moment, this is only used for Child
+   *
+   * */
+  var Transport = function(targetOrigins, autoStartListening) {
     this.readyState = 0;
     this.targetOrigins = {};
     for (var i = 0; i < (targetOrigins || []).length; i++) {
       this.targetOrigins[targetOrigins[i]] = 1;
     }
-    this.listen();
+    if (autoStartListening) this.listen();
   };
 
   mixin(Transport.prototype, Events, {
@@ -279,18 +288,19 @@
       this.childUri = childOrigin + childPath || '/child.html';
       this.iframe = this._createIframe(this.childUri, this.name);
 
-      Transport.call(this, [childOrigin]);
+      //for now, auto start is always enabled for Parent
+      Transport.call(this, [childOrigin], true);
     },
 
     listen: function() {
-      var once;
-      this.on('message', once = function(message) {
-        if (message !== 'ready') return;
-        this.readyState = 1;
-        this.trigger('ready');
-        this.off('message', once, this);
-      }, this);
-      return Transport.prototype.listen.apply(this, arguments);
+        var once;
+        this.on('message', once = function(message) {
+            if (message !== 'ready') return;
+            this.readyState = 1;
+            this.trigger('ready');
+            this.off('message', once, this);
+        }, this);
+        return Transport.prototype.listen.apply(this, arguments);
     },
 
     send: function(message) {
@@ -485,9 +495,9 @@
       var transport;
       options = options || {};
       if (options.childPath) {
-        transport = new Parent(options.name, options.childOrigin, options.childPath);
+        transport = new Parent(options.name, options.childOrigin, options.childPath, options.autoStartListening);
       } else {
-        transport = new Child(options.trustedOrigins);
+        transport = new Child(options.trustedOrigins, options.autoStartListening);
       }
       return new Courier(transport);
     },

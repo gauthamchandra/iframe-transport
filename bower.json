@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "homepage": "https://github.com/chatid/iframe-transport",
   "authors": [
-    "mponizil <misha.ponizil@gmail.com>"
+    "mponizil <misha.ponizil@gmail.com>",
+    "gauthamchandra <gautham.chandra@live.com>"
   ],
   "description": "Thin postMessage wrapper for processing method calls, callbacks, and events",
   "main": "library/ift.js",
@@ -25,7 +26,7 @@
     "tests"
   ],
   "dependencies": {
-    "localstorage-events": "git@github.com:chatid/localstorage-events.git"
+
   },
   "devDependencies": {
     "domready": "~1.0.5"

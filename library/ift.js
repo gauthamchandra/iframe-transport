@@ -6,7 +6,10 @@
 */
 
 (function (root, factory) {
-  if (typeof define === 'function' && define.amd) define('ift', factory);
+  /* global define */
+  /* global module */
+
+  if (typeof define === 'function' && define.amd) define('ift', ['lodash'], factory);
   else if (typeof exports === 'object') module.exports = factory();
   else root.ift = factory();
 }(this, function() {
@@ -22,17 +25,23 @@
     // http://peter.michaux.ca/articles/feature-detection-state-of-the-art-browser-scripting
     has: function(object, property){
       var t = typeof object[property];
-      return t == 'function' || (!!(t == 'object' && object[property])) || t == 'unknown';
+      return t === 'function' || (!!(t === 'object' && object[property])) || t === 'unknown';
     },
     on: function(target, name, callback) {
-      support.has(window, 'addEventListener') ?
-        target.addEventListener(name, callback, false) :
-        target.attachEvent('on' + name, callback);
+        if (support.has(window, 'addEventListener')) {
+            target.addEventListener(name, callback, false);
+        }
+        else {
+            target.attachEvent('on' + name, callback);
+        }
     },
     off: function(target, name, callback) {
-      support.has(window, 'removeEventListener') ?
-        target.removeEventListener(name, callback, false) :
-        target.detachEvent('on' + name, callback);
+        if (support.has(window, 'removeEventListener')) {
+            target.removeEventListener(name, callback, false);
+        }
+        else {
+            target.detachEvent('on' + name, callback);
+        }
     },
     // https://github.com/Modernizr/Modernizr/pull/1250/files
     structuredClones: (function() {
@@ -61,14 +70,14 @@
     var args = slice.call(arguments, 1),
         props;
     for (var i = 0; i < args.length; i++) {
-      if (props = args[i]) {
+      if ((props = args[i])) {
         for (var prop in props) {
           obj[prop] = props[prop];
         }
       }
     }
     return obj;
-  }
+  };
 
   // (ref Backbone `extend`)
   // Helper function to correctly set up the prototype chain, for subclasses.
@@ -86,7 +95,7 @@
 
     var Surrogate = function(){ this.constructor = child; };
     Surrogate.prototype = parent.prototype;
-    child.prototype = new Surrogate;
+    child.prototype = new Surrogate();
 
     mixin(child.prototype, protoProps);
 
@@ -118,7 +127,7 @@
   var Events = ift.Events = {
 
     on: function(name, callback, context) {
-      this._events || (this._events = {});
+      this._events = this._events || {};
       (this._events[name] = this._events[name] || []).push({
         callback: callback,
         context: context || this
@@ -172,6 +181,7 @@
 
     // Factory function for services, configured with a channel and transport.
     service: function(channel) {
+      /* jshint newcap:false */
       channel = this.channel(channel);
       var ctor = ift._services[channel.name] || Service;
       return new ctor(channel);
@@ -179,6 +189,7 @@
 
     // Factory function for consumers, configured with a channel and transport.
     consumer: function(channel) {
+      /* jshint newcap:false */
       channel = this.channel(channel);
       var ctor = ift._consumers[channel.name] || Service;
       return new ctor(channel);
@@ -186,6 +197,7 @@
 
     // Sugar for hooking transport readiness.
     ready: function(callback) {
+      /* jshint unused: false */
       var once;
       if (this.transport.isReady()) {
         callback(this);
@@ -366,7 +378,7 @@
 
     // Send a JSON-RPC-structured message over this channel.
     send: function(data) {
-      data || (data = {});
+      data = data || {};
       var message = {
         channel: this.name,
         data: mixin(data, { jsonrpc: '2.0' })
@@ -471,7 +483,7 @@
     // Factory function for creating appropriate transport for a courier.
     connect: function(options) {
       var transport;
-      options || (options = {});
+      options = options || {};
       if (options.childPath) {
         transport = new Parent(options.name, options.childOrigin, options.childPath);
       } else {
@@ -499,12 +511,12 @@
 
     // Register service constructor in global registry.
     registerService: function(channel, service) {
-      return this._services[channel] = service;
+      return (this._services[channel] = service);
     },
 
     // Register consumer constructor in global registry.
     registerConsumer: function(channel, consumer) {
-      return this._consumers[channel] = consumer;
+      return (this._consumers[channel] = consumer);
     },
 
     // Global services registry.
